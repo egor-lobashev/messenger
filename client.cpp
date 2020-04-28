@@ -4,6 +4,14 @@
 
 int main()
 {
+    char name[] = "#";
+    char input[10] = "";
+    std::cout << "Print your name\n";
+    std::cin.getline(input, 256, '\n');
+    strcat(name, input);
+    std::cout << name << "\n";
+    
+    //name[strlen(name)] = *sep;
     sf::TcpSocket socket;
 
     for (;;)
@@ -14,8 +22,12 @@ int main()
             return 0;
         }
 
-        char data[] = "";
-        std::cin >> data;
+        char data[256] = "";
+        
+        std::cin.getline(data, 256, '\n');
+
+        strcat(data, name);
+        std::cout << data << '\n';
         sf::Socket::Status status = socket.send(data, strlen(data) + 1);
 
         if (status == sf::Socket::Done) {

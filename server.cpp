@@ -2,9 +2,9 @@
 #include <iostream>
 #include <cstring>
 #include <thread>
-//#include <vector>
+#include <list>
 
-void manageClient(sf::TcpSocket socket)
+void manageClient(sf::TcpSocket* socket)
 {
     std::cout << "Client connected" << std::endl;
 
@@ -14,7 +14,7 @@ void manageClient(sf::TcpSocket socket)
         std::size_t bytesReceived = 0;
 
         //std::cout << "Waiting for receive" << std::endl;
-        sf::Socket::Status status = socket.receive(data, 10, bytesReceived);
+        sf::Socket::Status status = socket->receive(data, 10, bytesReceived);
 
         if (status == sf::Socket::Done)
         {
@@ -28,6 +28,8 @@ void manageClient(sf::TcpSocket socket)
             break;
         }
     }
+
+    delete socket;
 }
 
 int main()
@@ -40,22 +42,24 @@ int main()
         return 0;
     }
 
-    std::vector<std::thread*> clients;
-    int i = 0;
+    std::list<std::thread*> clients;
+    sf::TcpSocket* vacant = nullptr;
 
     for (;;)
     {
-        sf::TcpSocket socket;
-        if (listener.accept(socket) != sf::Socket::Done) {
+        vacant = new sf::TcpSocket;
+
+        if (listener.accept(*vacant) != sf::Socket::Done)
+        {
             std::cout << "Can not accept connection" << std::endl;
             return 0;
         }
 
-        clients[i++] = new std::thread(manageClient, socket);
+        clients.push_back(new std::thread(manageClient, vacant));
     }
 
-    for (i=0; i<clients.size(); i++)
-        delete clients[i];
+    for (std::thread* c: clients)
+        delete c;
 
     return 0;
 }
